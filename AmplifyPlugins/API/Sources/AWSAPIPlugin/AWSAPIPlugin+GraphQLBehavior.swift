@@ -85,28 +85,6 @@ public extension AWSAPIPlugin {
     }
 }
 
-//public protocol Subscribable {
-//    associatedtype InProcess
-//
-//    var subscription: AsyncChannel<InProcess> { get async }
-//}
-//extension GraphQLRequest: Subscribable {
-//    public var subscription: Amplify.AsyncChannel<Amplify.GraphQLSubscriptionTask<R>.InProcess> {
-//        get async {
-//            <#code#>
-//        }
-//    }
-//
-//    public typealias InProcess = GraphQLSubscriptionTask<R>.InProcess
-//}
-//public extension AmplifyInProcessReportingOperationTaskAdapter where Request: Subscribable {
-//    var subscription: AsyncChannel<InProcess> {
-//        get async {
-//            await progress
-//        }
-//    }
-//}
-
 public extension GraphQLSubscriptionTask {
     var subscription: AsyncChannel<InProcess> {
         get async {

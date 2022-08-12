@@ -8,6 +8,7 @@
 import SwiftUI
 import AWSAPIPlugin
 import AWSPluginsCore
+import Amplify
 
 public extension AsyncSequence {
     func forEach(_ block: (Element) async throws -> Void) async rethrows {
@@ -55,7 +56,7 @@ class SubscriptionViewModel: ObservableObject {
     }
 }
 struct SubscriptionView: View {
-    @StateObject var vm = ContentViewModel()
+    @StateObject var vm = SubscriptionViewModel()
     
     var body: some View {
         if #available(iOS 15.0, *) {
@@ -77,7 +78,6 @@ struct SubscriptionView_Previews: PreviewProvider {
         SubscriptionView()
     }
 }
-
 
 public struct Todo: Model {
     public let id: String
