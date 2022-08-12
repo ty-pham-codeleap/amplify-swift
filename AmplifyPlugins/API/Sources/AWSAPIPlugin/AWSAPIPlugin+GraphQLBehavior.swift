@@ -20,7 +20,7 @@ public extension AWSAPIPlugin {
         return operation
     }
     
-    func query<R: Decodable>(request: GraphQLRequest<R>) async throws -> GraphQLOperation<R>.Success {
+    func query<R: Decodable>(request: GraphQLRequest<R>) async throws -> GraphQLOperationTask<R>.Success {
         try await withCheckedThrowingContinuation { continuation in
             _ = query(request: request) { listener in
                 continuation.resume(with: listener)
@@ -39,7 +39,7 @@ public extension AWSAPIPlugin {
         return operation
     }
     
-    func mutate<R: Decodable>(request: GraphQLRequest<R>) async throws -> GraphQLOperation<R>.Success {
+    func mutate<R: Decodable>(request: GraphQLRequest<R>) async throws -> GraphQLOperationTask<R>.Success {
         try await withCheckedThrowingContinuation { continuation in
             _ = mutate(request: request) { listener in
                 continuation.resume(with: listener)

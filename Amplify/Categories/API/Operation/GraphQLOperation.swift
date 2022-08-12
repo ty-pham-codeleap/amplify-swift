@@ -30,3 +30,9 @@ public extension HubPayload.EventName.API {
     /// eventName for HubPayloads emitted by this operation
     static let subscribe = "API.subscribe"
 }
+
+public extension GraphQLOperation {
+    typealias TaskAdapter = AmplifyOperation<Request, Success, Failure>
+}
+
+public typealias GraphQLOperationTask<R: Decodable> = GraphQLOperation<R>.TaskAdapter

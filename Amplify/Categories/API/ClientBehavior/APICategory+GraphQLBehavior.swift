@@ -6,7 +6,7 @@
 //
 
 extension APICategory: APICategoryGraphQLBehavior {
-
+    
     // MARK: - Request-based GraphQL operations
 
     @discardableResult
@@ -14,8 +14,8 @@ extension APICategory: APICategoryGraphQLBehavior {
                                     listener: GraphQLOperation<R>.ResultListener?) -> GraphQLOperation<R> {
         plugin.query(request: request, listener: listener)
     }
-    
-    public func query<R: Decodable>(request: GraphQLRequest<R>) async throws -> GraphQLOperation<R>.Success {
+
+    public func query<R: Decodable>(request: GraphQLRequest<R>) async throws -> GraphQLOperationTask<R>.Success {
         try await plugin.query(request: request)
     }
 
@@ -25,7 +25,7 @@ extension APICategory: APICategoryGraphQLBehavior {
         plugin.mutate(request: request, listener: listener)
     }
     
-    public func mutate<R: Decodable>(request: GraphQLRequest<R>) async throws -> GraphQLOperation<R>.Success {
+    public func mutate<R: Decodable>(request: GraphQLRequest<R>) async throws -> GraphQLOperationTask<R>.Success {
         try await plugin.mutate(request: request)
     }
 

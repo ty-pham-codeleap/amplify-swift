@@ -14,7 +14,7 @@ extension APICategory: APICategoryRESTBehavior {
         plugin.get(request: request, listener: listener)
     }
     
-    public func get(request: RESTRequest) async throws -> RESTOperation.Success {
+    public func get(request: RESTRequest) async throws -> RESTOperationTask.Success {
         try await plugin.get(request: request)
     }
 
@@ -23,7 +23,7 @@ extension APICategory: APICategoryRESTBehavior {
         plugin.put(request: request, listener: listener)
     }
     
-    public func put(request: RESTRequest) async throws -> RESTOperation.Success {
+    public func put(request: RESTRequest) async throws -> RESTOperationTask.Success {
         try await plugin.put(request: request)
     }
 
@@ -32,7 +32,7 @@ extension APICategory: APICategoryRESTBehavior {
         plugin.post(request: request, listener: listener)
     }
     
-    public func post(request: RESTRequest) async throws -> RESTOperation.Success {
+    public func post(request: RESTRequest) async throws -> RESTOperationTask.Success {
         try await plugin.post(request: request)
     }
 
@@ -41,7 +41,7 @@ extension APICategory: APICategoryRESTBehavior {
         plugin.delete(request: request, listener: listener)
     }
     
-    public func delete(request: RESTRequest) async throws -> RESTOperation.Success {
+    public func delete(request: RESTRequest) async throws -> RESTOperationTask.Success {
         try await plugin.delete(request: request)
     }
 
@@ -50,7 +50,7 @@ extension APICategory: APICategoryRESTBehavior {
         plugin.head(request: request, listener: listener)
     }
     
-    public func head(request: RESTRequest) async throws -> RESTOperation.Success {
+    public func head(request: RESTRequest) async throws -> RESTOperationTask.Success {
         try await plugin.head(request: request)
     }
 
@@ -59,7 +59,7 @@ extension APICategory: APICategoryRESTBehavior {
         plugin.patch(request: request, listener: listener)
     }
     
-    public func patch(request: RESTRequest) async throws -> RESTOperation.Success {
+    public func patch(request: RESTRequest) async throws -> RESTOperationTask.Success {
         try await plugin.patch(request: request)
     }
 }
