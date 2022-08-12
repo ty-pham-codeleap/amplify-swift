@@ -23,6 +23,14 @@ public extension AWSAPIPlugin {
         queue.addOperation(operation)
         return operation
     }
+    
+    func get(request: RESTRequest) async throws -> RESTOperation.Success {
+        try await withCheckedThrowingContinuation { continuation in
+            _ = get(request: request) { listener in
+                continuation.resume(with: listener)
+            }
+        }
+    }
 
     func put(request: RESTRequest, listener: RESTOperation.ResultListener?) -> RESTOperation {
         let operationRequest = RESTOperationRequest(request: request,
@@ -36,6 +44,14 @@ public extension AWSAPIPlugin {
 
         queue.addOperation(operation)
         return operation
+    }
+    
+    func put(request: RESTRequest) async throws -> RESTOperation.Success {
+        try await withCheckedThrowingContinuation { continuation in
+            _ = put(request: request) { listener in
+                continuation.resume(with: listener)
+            }
+        }
     }
 
     func post(request: RESTRequest, listener: RESTOperation.ResultListener?) -> RESTOperation {
@@ -51,6 +67,14 @@ public extension AWSAPIPlugin {
         queue.addOperation(operation)
         return operation
     }
+    
+    func post(request: RESTRequest) async throws -> RESTOperation.Success {
+        try await withCheckedThrowingContinuation { continuation in
+            _ = post(request: request) { listener in
+                continuation.resume(with: listener)
+            }
+        }
+    }
 
     func patch(request: RESTRequest, listener: RESTOperation.ResultListener?) -> RESTOperation {
         let operationRequest = RESTOperationRequest(request: request, operationType: .patch)
@@ -63,6 +87,14 @@ public extension AWSAPIPlugin {
 
         queue.addOperation(operation)
         return operation
+    }
+    
+    func patch(request: RESTRequest) async throws -> RESTOperation.Success {
+        try await withCheckedThrowingContinuation { continuation in
+            _ = patch(request: request) { listener in
+                continuation.resume(with: listener)
+            }
+        }
     }
 
     func delete(request: RESTRequest, listener: RESTOperation.ResultListener?) -> RESTOperation {
@@ -78,6 +110,14 @@ public extension AWSAPIPlugin {
         queue.addOperation(operation)
         return operation
     }
+    
+    func delete(request: RESTRequest) async throws -> RESTOperation.Success {
+        try await withCheckedThrowingContinuation { continuation in
+            _ = delete(request: request) { listener in
+                continuation.resume(with: listener)
+            }
+        }
+    }
 
     func head(request: RESTRequest, listener: RESTOperation.ResultListener?) -> RESTOperation {
         let operationRequest = RESTOperationRequest(request: request,
@@ -91,5 +131,13 @@ public extension AWSAPIPlugin {
 
         queue.addOperation(operation)
         return operation
+    }
+    
+    func head(request: RESTRequest) async throws -> RESTOperation.Success {
+        try await withCheckedThrowingContinuation { continuation in
+            _ = head(request: request) { listener in
+                continuation.resume(with: listener)
+            }
+        }
     }
 }

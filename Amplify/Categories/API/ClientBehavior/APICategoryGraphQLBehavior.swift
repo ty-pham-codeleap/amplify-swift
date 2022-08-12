@@ -21,7 +21,6 @@ public protocol APICategoryGraphQLBehavior: AnyObject {
     func query<R: Decodable>(request: GraphQLRequest<R>,
                              listener: GraphQLOperation<R>.ResultListener?) -> GraphQLOperation<R>
 
-    @discardableResult
     func query<R: Decodable>(request: GraphQLRequest<R>) async throws -> GraphQLOperation<R>.Success
     
     /// Perform a GraphQL mutate operation against a previously configured API. This operation

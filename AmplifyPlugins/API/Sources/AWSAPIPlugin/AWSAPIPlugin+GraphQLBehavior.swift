@@ -19,6 +19,14 @@ public extension AWSAPIPlugin {
         queue.addOperation(operation)
         return operation
     }
+    
+    func query<R: Decodable>(request: GraphQLRequest<R>) async throws -> GraphQLOperation<R>.Success {
+        try await withCheckedThrowingContinuation { continuation in
+            _ = query(request: request) { listener in
+                continuation.resume(with: listener)
+            }
+        }
+    }
 
     func mutate<R: Decodable>(request: GraphQLRequest<R>,
                               listener: GraphQLOperation<R>.ResultListener?) -> GraphQLOperation<R> {
@@ -29,6 +37,14 @@ public extension AWSAPIPlugin {
                                             resultListener: listener)
         queue.addOperation(operation)
         return operation
+    }
+    
+    func mutate<R: Decodable>(request: GraphQLRequest<R>) async throws -> GraphQLOperation<R>.Success {
+        try await withCheckedThrowingContinuation { continuation in
+            _ = mutate(request: request) { listener in
+                continuation.resume(with: listener)
+            }
+        }
     }
 
     func subscribe<R>(
@@ -46,5 +62,23 @@ public extension AWSAPIPlugin {
                 resultListener: completionListener)
             queue.addOperation(operation)
             return operation
+    }
+    
+    func subscribe<R>(request: GraphQLRequest<R>) async throws -> GraphQLSubscriptionOperation<R> {
+        let operation = AWSGraphQLSubscriptionOperation(
+            request: request.toOperationRequest(operationType: .subscription),
+            pluginConfig: pluginConfig,
+            subscriptionConnectionFactory: subscriptionConnectionFactory,
+            authService: authService,
+            apiAuthProviderFactory: authProviderFactory,
+            inProcessListener: { valueListner in
+                print("send to sequence")
+            },
+            resultListener: { completionListener in
+                print("send to sequence")
+            }
+        )
+        queue.addOperation(operation)
+        return operation
     }
 }
