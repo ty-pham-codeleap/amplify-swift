@@ -17,12 +17,16 @@ class ContentViewModel: ObservableObject {
         apiPlugin = AWSAPIPlugin()
     }
     
-    func subscribe() async throws {
-        let operation = try await Amplify.API.subscribe(request: .subscription(of: Todo.self,
-                                                                               type: .onCreate))
-        // operation.sequence
-        
-        
+    func subscribe() async {
+        do {
+            let operation = try await Amplify.API.subscribe(request:
+                    .subscription(of: Todo.self,
+                                  type: .onCreate))
+            // operation.sequence
+            
+        } catch {
+            print("Failed to subscribe error: \(error)")
+        }
     }
 }
 
@@ -30,9 +34,16 @@ struct ContentView: View {
     @StateObject var vm = ContentViewModel()
     
     var body: some View {
-        VStack {
+        if #available(iOS 15.0, *) {
+            VStack {
+                
+            }.task { await vm.subscribe() }
             
+        } else {
+            // Fallback on earlier versions
+            Text("task is on iOS 15.0")
         }
+        
     }
 }
 
