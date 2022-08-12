@@ -35,4 +35,10 @@ public extension GraphQLOperation {
     typealias TaskAdapter = AmplifyOperation<Request, Success, Failure>
 }
 
-public typealias GraphQLOperationTask<R: Decodable> = GraphQLOperation<R>.TaskAdapter
+public typealias GraphQLTask<R: Decodable> = GraphQLOperation<R>.TaskAdapter
+
+ public extension GraphQLSubscriptionOperation {
+     typealias TaskAdapter = AmplifyInProcessReportingOperationTaskAdapter<Request, InProcess, Success, Failure>
+ }
+
+ public typealias GraphQLSubscriptionTask<R: Decodable> = GraphQLSubscriptionOperation<R>.TaskAdapter

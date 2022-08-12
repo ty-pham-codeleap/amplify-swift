@@ -7,12 +7,12 @@
 
 import Foundation
 
-class AmplifyOperationTaskAdapter<Request: AmplifyOperationRequest, Success, Failure: AmplifyError>: AmplifyTask {
+public class AmplifyOperationTaskAdapter<Request: AmplifyOperationRequest, Success, Failure: AmplifyError>: AmplifyTask {
     let operation: AmplifyOperation<Request, Success, Failure>
     let childTask: ChildTask<Void, Success, Failure>
     var resultToken: UnsubscribeToken? = nil
 
-    init(operation: AmplifyOperation<Request, Success, Failure>) {
+    public init(operation: AmplifyOperation<Request, Success, Failure>) {
         self.operation = operation
         self.childTask = ChildTask(parent: operation)
         resultToken = operation.subscribe(resultListener: resultListener)
@@ -24,21 +24,21 @@ class AmplifyOperationTaskAdapter<Request: AmplifyOperationRequest, Success, Fai
         }
     }
 
-    var result: Success {
+    public var result: Success {
         get async throws {
             try await childTask.result
         }
     }
 
-    func pause() async {
+    public func pause() async {
         operation.pause()
     }
 
-    func resume() async {
+    public func resume() async {
         operation.resume()
     }
 
-    func cancel() async {
+    public func cancel() async {
         await childTask.cancel()
     }
 
@@ -49,13 +49,13 @@ class AmplifyOperationTaskAdapter<Request: AmplifyOperationRequest, Success, Fai
     }
 }
 
-class AmplifyInProcessReportingOperationTaskAdapter<Request: AmplifyOperationRequest, InProcess, Success, Failure: AmplifyError>: AmplifyTask, AmplifyInProcessReportingTask {
+public class AmplifyInProcessReportingOperationTaskAdapter<Request: AmplifyOperationRequest, InProcess, Success, Failure: AmplifyError>: AmplifyTask, AmplifyInProcessReportingTask {
     let operation: AmplifyInProcessReportingOperation<Request, InProcess, Success, Failure>
     let childTask: ChildTask<InProcess, Success, Failure>
     var resultToken: UnsubscribeToken? = nil
     var inProcessToken: UnsubscribeToken? = nil
 
-    init(operation: AmplifyInProcessReportingOperation<Request, InProcess, Success, Failure>) {
+    public init(operation: AmplifyInProcessReportingOperation<Request, InProcess, Success, Failure>) {
         self.operation = operation
         self.childTask = ChildTask(parent: operation)
         resultToken = operation.subscribe(resultListener: resultListener)
@@ -71,27 +71,27 @@ class AmplifyInProcessReportingOperationTaskAdapter<Request: AmplifyOperationReq
         }
     }
 
-    var result: Success {
+    public var result: Success {
         get async throws {
             try await childTask.result
         }
     }
 
-    var progress: AsyncChannel<InProcess> {
+    public var progress: AsyncChannel<InProcess> {
         get async {
             await childTask.inProcess
         }
     }
 
-    func pause() async {
+    public func pause() async {
         operation.pause()
     }
 
-    func resume() async {
+    public func resume() async {
         operation.resume()
     }
 
-    func cancel() async {
+    public func cancel() async {
         await childTask.cancel()
     }
 

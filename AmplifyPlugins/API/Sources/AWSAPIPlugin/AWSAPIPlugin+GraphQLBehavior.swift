@@ -20,12 +20,15 @@ public extension AWSAPIPlugin {
         return operation
     }
     
-    func query<R: Decodable>(request: GraphQLRequest<R>) async throws -> GraphQLOperationTask<R>.Success {
-        try await withCheckedThrowingContinuation { continuation in
-            _ = query(request: request) { listener in
-                continuation.resume(with: listener)
-            }
-        }
+    func query<R: Decodable>(request: GraphQLRequest<R>) async throws -> GraphQLTask<R>.Success {
+        let operation = AWSGraphQLOperation(request: request.toOperationRequest(operationType: .query),
+                                            session: session,
+                                            mapper: mapper,
+                                            pluginConfig: pluginConfig,
+                                            resultListener: nil)
+        let task = AmplifyOperationTaskAdapter(operation: operation)
+        queue.addOperation(operation)
+        return try await task.result
     }
 
     func mutate<R: Decodable>(request: GraphQLRequest<R>,
@@ -39,12 +42,15 @@ public extension AWSAPIPlugin {
         return operation
     }
     
-    func mutate<R: Decodable>(request: GraphQLRequest<R>) async throws -> GraphQLOperationTask<R>.Success {
-        try await withCheckedThrowingContinuation { continuation in
-            _ = mutate(request: request) { listener in
-                continuation.resume(with: listener)
-            }
-        }
+    func mutate<R: Decodable>(request: GraphQLRequest<R>) async throws -> GraphQLTask<R>.Success {
+        let operation = AWSGraphQLOperation(request: request.toOperationRequest(operationType: .mutation),
+                                            session: session,
+                                            mapper: mapper,
+                                            pluginConfig: pluginConfig,
+                                            resultListener: nil)
+        let task = AmplifyOperationTaskAdapter(operation: operation)
+        queue.addOperation(operation)
+        return try await task.result
     }
 
     func subscribe<R>(
@@ -64,21 +70,47 @@ public extension AWSAPIPlugin {
             return operation
     }
     
-    func subscribe<R>(request: GraphQLRequest<R>) async throws -> GraphQLSubscriptionOperation<R> {
+    func subscribe<R>(request: GraphQLRequest<R>) async throws -> GraphQLSubscriptionTask<R> {
         let operation = AWSGraphQLSubscriptionOperation(
             request: request.toOperationRequest(operationType: .subscription),
             pluginConfig: pluginConfig,
             subscriptionConnectionFactory: subscriptionConnectionFactory,
             authService: authService,
             apiAuthProviderFactory: authProviderFactory,
-            inProcessListener: { valueListner in
-                print("send to sequence")
-            },
-            resultListener: { completionListener in
-                print("send to sequence")
-            }
-        )
+            inProcessListener: nil,
+            resultListener: nil)
+        let task = AmplifyInProcessReportingOperationTaskAdapter(operation: operation)
         queue.addOperation(operation)
-        return operation
+        return task
+    }
+}
+
+//public protocol Subscribable {
+//    associatedtype InProcess
+//
+//    var subscription: AsyncChannel<InProcess> { get async }
+//}
+//extension GraphQLRequest: Subscribable {
+//    public var subscription: Amplify.AsyncChannel<Amplify.GraphQLSubscriptionTask<R>.InProcess> {
+//        get async {
+//            <#code#>
+//        }
+//    }
+//
+//    public typealias InProcess = GraphQLSubscriptionTask<R>.InProcess
+//}
+//public extension AmplifyInProcessReportingOperationTaskAdapter where Request: Subscribable {
+//    var subscription: AsyncChannel<InProcess> {
+//        get async {
+//            await progress
+//        }
+//    }
+//}
+
+public extension GraphQLSubscriptionTask {
+    var subscription: AsyncChannel<InProcess> {
+        get async {
+            await progress
+        }
     }
 }

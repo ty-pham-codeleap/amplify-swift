@@ -33,7 +33,7 @@ public extension HubPayload.EventName.API {
 }
 
 public extension RESTOperation {
-    typealias TaskAdapter = AmplifyOperation<Request, Success, Failure>
+    typealias TaskAdapter = AmplifyOperationTaskAdapter<Request, Success, Failure>
 }
 
-public typealias RESTOperationTask = RESTOperation.TaskAdapter
+public typealias RESTTask = RESTOperation.TaskAdapter

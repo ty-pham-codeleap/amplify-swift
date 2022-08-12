@@ -67,7 +67,7 @@ public typealias FastOperationResult = Result<FastOperationSuccess, FastOperatio
 public typealias FastOperationResultListener = (FastOperationResult) -> Void
 
 public class FastOperation: AmplifyOperation<FastOperationRequest, FastOperationSuccess, FastOperationError> {
-    public typealias TaskAdapter = AmplifyOperation<Request, Success, Failure>
+    public typealias TaskAdapter = AmplifyOperationTaskAdapter<Request, Success, Failure>
     public init(request: FastOperationRequest, resultListener: FastOperationResultListener? = nil) {
         super.init(categoryType: .storage,
                    eventName: "FastOperation",
