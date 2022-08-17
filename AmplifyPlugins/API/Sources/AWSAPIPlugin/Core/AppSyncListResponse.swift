@@ -48,3 +48,22 @@ extension AppSyncListResponse {
     }
 
 }
+
+// MARK: - AppSyncModelResponse
+
+struct AppSyncModelResponse<Element: Model>: Codable {
+    
+    
+    init(item: Element?) {
+     
+    }
+}
+
+extension AppSyncModelResponse {
+    static func initWithMetadata(type: Element.type,
+                                 graphQLData: JSONValue,
+                                 apiName: String?) throws -> AppSyncModelResponse<Element> {
+        
+    }
+    )
+}

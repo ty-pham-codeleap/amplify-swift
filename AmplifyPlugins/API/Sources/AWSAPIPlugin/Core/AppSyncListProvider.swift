@@ -9,6 +9,75 @@ import Foundation
 import Amplify
 import AWSPluginsCore
 
+public class AppSyncModelProvider<Element: Model>: ModelProvider {
+   
+    let apiName: String?
+    
+    convenience init(payload: AppSyncModelPayload) throws {
+        let modelResponse = try AppSyncModelResponse.initWithMetadata(type: Element.self,
+                                                                       graphQLData: payload.graphQLData,
+                                                                       apiName: payload.apiName)
+
+        self.init(element: modelResponse.element,
+                  apiName: payload.apiName)
+    }
+    enum LoadedState {
+        case notLoaded(id: Model.Identifier,
+                       field: String)
+
+        case loaded(element: Element?)
+    }
+    
+    var loadedState: LoadedState
+    
+    public func load() async throws -> Element? {
+        
+        let request = GraphQLRequest<JSONValue>.getQuery(responseType: JSONValue.self,
+                                                         modelSchema: Element.schema,
+                                                         apiName: apiName)
+        do {
+            let graphQLResponse = try await Amplify.API.query(request: request)
+            switch graphQLResponse {
+            case .success(let graphQLData):
+                guard let response = try? AppSyncModelResponse.initWithMetadata(type: Element.self,
+                                                                               graphQLData: graphQLData,
+                                                                               apiName: self.apiName) else {
+                    throw CoreError.operation("""
+                                            The AppSync response return successfully, but could not decode to
+                                            AWSAppSyncModelResponse from: \(graphQLData)
+                                            """, "", nil)
+                }
+                
+                self.loadedState = .loaded(element: response.element)
+                return response.element
+            case .failure(let graphQLError):
+                Amplify.API.log.error(error: graphQLError)
+                throw CoreError.operation(
+                    "The AppSync response returned successfully with GraphQL errors.",
+                    "Check the underlying error for the failed GraphQL response.",
+                    graphQLError)
+            }
+        } catch let apiError as APIError {
+            Amplify.API.log.error(error: apiError)
+            throw CoreError.operation("The AppSync request failed",
+                                          "See underlying `APIError` for more details.",
+                                          apiError)
+        } catch {
+            throw error
+        }
+    }
+    
+    public func getState() -> ModelProviderState<Element> {
+        switch loadedState {
+        case .notLoaded:
+            return .notLoaded
+        case .loaded(let element):
+            return .loaded(element)
+        }
+    }
+    
+    
+}
 public class AppSyncListProvider<Element: Model>: ModelListProvider {
 
     /// The API friendly name used to reference the API to call

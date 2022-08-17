@@ -64,3 +64,10 @@ public struct AppSyncListPayload: Codable {
         return nil
     }
 }
+
+// MARK - AppSyncModelPayload
+
+
+public struct AppSyncModelPayload: Codable {
+    
+}

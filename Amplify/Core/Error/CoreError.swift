@@ -10,6 +10,8 @@ public enum CoreError {
 
     /// A related operation performed on `List` resulted in an error.
     case listOperation(ErrorDescription, RecoverySuggestion, Error? = nil)
+    
+    case operation(ErrorDescription, RecoverySuggestion, Error? = nil)
 
     /// A client side validation error occured.
     case clientValidation(ErrorDescription, RecoverySuggestion, Error? = nil)

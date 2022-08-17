@@ -110,3 +110,13 @@ public extension ModelListProvider {
         AnyModelListProvider(provider: self)
     }
 }
+
+
+// MARK - AnyModelProvider
+
+
+public extension ModelProvider {
+    func eraseToAnyModelProvider() -> AnyModelProvider<Element> {
+        AnyModelProvider(provider: self)
+    }
+}
