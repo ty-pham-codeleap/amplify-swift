@@ -13,3 +13,5 @@ public protocol Cancellable {
 
 /// Unique name for Cancellable which handles a name conflict with the Combine framework.
 public typealias AmplifyCancellable = Cancellable
+
+extension Task: AmplifyCancellable {}

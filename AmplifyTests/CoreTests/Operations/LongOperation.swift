@@ -132,3 +132,63 @@ public typealias LongTask = LongOperation.TaskAdapter
 public typealias LongResultPublisher = LongOperation.ResultPublisher
 public typealias LongProgressPublisher = LongOperation.ProgressPublisher
 #endif
+
+public extension HubPayload.EventName.Testing {
+    static let longCompositeTask = "Testing.longCompositeTask"
+}
+
+public class LongCompositeTask: AmplifyIdentifiableTask, AmplifySequenceTask, AmplifyHubInProcessTask {
+    public typealias Request = LongOperationRequest
+    public typealias InProcess = Double
+
+    public let id = UUID()
+    public let request: Request
+    public var categoryType = CategoryType.storage
+    public let eventName: HubPayloadEventName
+
+    private var channel: AmplifyAsyncSequence<InProcess>?
+    private var task: Task<Void, Error>?
+
+    public init(request: Request) {
+        self.request = request
+        self.eventName = HubPayload.EventName.Testing.longCompositeTask
+
+        task = Task { [unowned self] in
+            var count = 0
+            while count < request.steps {
+                await report(count: count)
+                try await Task.sleep(seconds: request.delay)
+                count += 1
+            }
+            await report(count: count)
+        }
+
+        channel = AmplifyAsyncSequence(parent: task, bufferingPolicy: .bufferingNewest(5))
+    }
+
+    public var progress: AmplifyAsyncSequence<InProcess> {
+        sequence
+    }
+
+    public var sequence: AmplifyAsyncSequence<InProcess> {
+        channel!
+    }
+
+    private func report(count: Int) async {
+        let progress = Progress(totalUnitCount: Int64(request.steps))
+        progress.completedUnitCount = Int64(count)
+        channel?.send(progress.fractionCompleted)
+        dispatch(inProcess: progress.fractionCompleted)
+    }
+
+}
+
+public protocol LongTaskFacade {
+    associatedtype Request: LongCompositeTask.Request
+    associatedtype InProcess = LongCompositeTask.InProcess
+    typealias InProcessListener = (InProcess) -> Void
+
+    var progress: AmplifyAsyncSequence<InProcess> { get }
+    func subscribe(inProcessListener: @escaping InProcessListener) -> UnsubscribeToken
+    func unsubscribe(_ token: UnsubscribeToken)
+}

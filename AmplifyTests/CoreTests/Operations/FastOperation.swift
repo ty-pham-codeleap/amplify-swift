@@ -103,3 +103,39 @@ public typealias FastTask = FastOperation.TaskAdapter
 #if canImport(Combine)
 public typealias FastResultPublisher = FastOperation.ResultPublisher
 #endif
+
+public extension HubPayload.EventName {
+    struct Testing { }
+}
+
+public extension HubPayload.EventName.Testing {
+    static let fastCompositeTask = "Testing.fastCompositeTask"
+}
+
+public class FastCompositeTask: AmplifyIdentifiableTask, AmplifyResultTask, AmplifyValueTask, AmplifyHubResultTask {
+    public typealias Request = FastOperationRequest
+    public typealias Success = FastOperationSuccess
+    public typealias Failure = FastOperationError
+
+    public let id = UUID()
+    public let request: Request
+    public var categoryType = CategoryType.storage
+    public let eventName: HubPayloadEventName
+
+    public init(request: Request) {
+        self.request = request
+        self.eventName = HubPayload.EventName.Testing.fastCompositeTask
+    }
+
+    public var result: TaskResult {
+        get async {
+            let value = request.numbers.reduce(into: 0) { result, current in
+                result += current
+            }
+            let result = TaskResult.success(FastOperationSuccess(value: value))
+            dispatch(result: result)
+            return result
+        }
+    }
+
+}
