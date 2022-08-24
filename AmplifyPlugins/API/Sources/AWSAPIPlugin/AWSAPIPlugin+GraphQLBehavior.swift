@@ -8,6 +8,7 @@
 import Amplify
 
 public extension AWSAPIPlugin {
+    typealias SubscriptionResponseEvent<R: Decodable> = SubscriptionEvent<GraphQLResponse<R>>
 
     func query<R: Decodable>(request: GraphQLRequest<R>,
                              listener: GraphQLOperation<R>.ResultListener?) -> GraphQLOperation<R> {
@@ -82,5 +83,16 @@ public extension AWSAPIPlugin {
         let task = AmplifyInProcessReportingOperationTaskAdapter(operation: operation)
         queue.addOperation(operation)
         return task
+    }
+
+    func subscribeNew<R>(request: GraphQLRequest<R>) -> AmplifyAsyncThrowingSequence<SubscriptionResponseEvent<R>> {
+        let task = AWSGraphQLSubscriptionTask(
+            request: request.toOperationRequest(operationType: .subscription),
+            pluginConfig: pluginConfig,
+            subscriptionConnectionFactory: subscriptionConnectionFactory,
+            authService: authService,
+            apiAuthProviderFactory: authProviderFactory)
+        // TODO: have Chris figure out how to retain a task
+        return task.createSequence()
     }
 }
