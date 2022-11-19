@@ -11,6 +11,7 @@ import AWSCognitoAuthPlugin
 
 @testable import Amplify
 @testable import APIHostApp
+import Combine
 
 class GraphQLWithIAMIntegrationTests: XCTestCase {
 
@@ -49,34 +50,6 @@ class GraphQLWithIAMIntegrationTests: XCTestCase {
         await signOut()
     }
     
-    /// Test create mutation with a custom GraphQL Document
-    ///
-    /// - Given:  A custom GraphQL document containing CreateTodo mutation request, and user is signed in.
-    /// - When:
-    ///    - Call mutate API
-    /// - Then:
-    ///    - The operation completes successfully with no errors and todo in response
-    ///
-    func testCreateTodoAuthRole() async {
-        await createAuthenticatedUser()
-        await createTodoTest()
-    }
-    
-    /// An unauthenticated user should not fail
-    ///
-    /// - Given:  A CreateTodo mutation request, and user is not signed in.
-    /// - When:
-    ///    - Call mutate API
-    /// - Then:
-    ///    - The operation fails and contains http status error for 401 (Unauthorized)
-    ///
-    func testCreateTodoUnauthRole() async {
-        if await isSignedIn() {
-            await signOut()
-        }
-        await createTodoTest()
-    }
-    
     func createTodoTest() async {
         let completeInvoked = expectation(description: "request completed")
 
@@ -88,13 +61,11 @@ class GraphQLWithIAMIntegrationTests: XCTestCase {
                                                                              name: expectedName,
                                                                              description: expectedDescription),
                                      responseType: CreateTodoMutation.Data.self)
-        let operation = Amplify.API.mutate(request: request) { event in
-            switch event {
-            case .success(let graphQLResponse):
-                guard case let .success(data) = graphQLResponse else {
-                    XCTFail("Missing successful response")
-                    return
-                }
+        do {
+            let result = try await Amplify.API.mutate(request: request)
+            XCTAssertNotNil(result)
+            switch result {
+            case .success(let data):
                 guard let todo = data.createTodo else {
                     XCTFail("Missing Todo")
                     return
@@ -109,8 +80,9 @@ class GraphQLWithIAMIntegrationTests: XCTestCase {
             case .failure(let error):
                 XCTFail("Unexpected .failed event: \(error)")
             }
+        } catch {
+            XCTFail("Unexpected .failed event: \(error)")
         }
-        XCTAssertNotNil(operation)
         await waitForExpectations(timeout: TestCommonConstants.networkTimeout)
     }
 
@@ -157,14 +129,23 @@ class GraphQLWithIAMIntegrationTests: XCTestCase {
                 break
             }
         }
-        var onCompleteHandler: GraphQLSubscriptionOperation<Todo>.ResultListener = { _ in }
-        let operation = Amplify.API.subscribe(
-            request: .subscription(of: Todo.self, type: .onCreate),
-            valueListener: { onValueHandler($0) },
-            completionListener: { onCompleteHandler($0) })
-        XCTAssertNotNil(operation)
-        await waitForExpectations(timeout: TestCommonConstants.networkTimeout)
         
+        var onCompleteHandler: (Subscribers.Completion<Error>) -> Void = { event in
+            switch event {
+            case .failure(let error):
+                XCTFail("Unexpected .failed event: \(error)")
+            case .finished:
+                connectedInvoked.fulfill()
+            }
+        }
+        let subscription = Amplify.API.subscribe(request: .subscription(of: Todo.self, type: .onCreate))
+        let sink = Amplify.Publisher.create(subscription)
+            .sink(receiveCompletion: { onCompleteHandler($0) },
+                  receiveValue: { onValueHandler($0) })
+        
+        XCTAssertNotNil(sink)
+        await waitForExpectations(timeout: TestCommonConstants.networkTimeout)
+
         let progressInvoked = expectation(description: "progress invoked")
         progressInvoked.expectedFulfillmentCount = 2
         let uuid = UUID().uuidString
@@ -187,8 +168,8 @@ class GraphQLWithIAMIntegrationTests: XCTestCase {
         }
         let createdTodo1 = expectation(description: "created todo")
         let createdTodo2 = expectation(description: "created todo")
-        await _ = createTodo(id: uuid, name: name, expect: createdTodo1)
-        await _ = createTodo(id: uuid2, name: name, expect: createdTodo2)
+        let _ = await createTodo(id: uuid, name: name, expect: createdTodo1)
+        let _ = await createTodo(id: uuid2, name: name, expect: createdTodo2)
         await waitForExpectations(timeout: TestCommonConstants.networkTimeout)
 
         let disconnectedInvoked = expectation(description: "Connection disconnected")
@@ -210,13 +191,12 @@ class GraphQLWithIAMIntegrationTests: XCTestCase {
             switch event {
             case .failure(let error):
                 XCTFail("Unexpected .failed event: \(error)")
-            case .success:
+            case .finished:
                 completedInvoked.fulfill()
             }
         }
-        operation.cancel()
+        subscription.cancel()
         await waitForExpectations(timeout: TestCommonConstants.networkTimeout)
-        XCTAssertTrue(operation.isFinished)
     }
 
     // MARK: - Helpers
@@ -227,20 +207,19 @@ class GraphQLWithIAMIntegrationTests: XCTestCase {
         var result: Todo?
         let requestInvokedSuccessfully = expect ?? expectation(description: "request completed")
 
-        _ = Amplify.API.mutate(request: .create(todo)) { event in
-            switch event {
-            case .success(let data):
-                switch data {
-                case .success(let post):
-                    result = post
-                default:
-                    XCTFail("Create Post was not successful: \(data)")
-                }
-                requestInvokedSuccessfully.fulfill()
-            case .failure(let error):
-                XCTFail("\(error)")
+        do {
+            let apiResult = try await Amplify.API.mutate(request: .create(todo))
+            switch apiResult {
+            case .success(let post):
+                result = post
+            default:
+                XCTFail("Create Post was not successful: \(apiResult)")
             }
+            requestInvokedSuccessfully.fulfill()
+        } catch {
+            XCTFail("Failed with error: \(error)")
         }
+        
         if expect == nil {
             await waitForExpectations(timeout: TestCommonConstants.networkTimeout)
         }
@@ -260,15 +239,14 @@ class GraphQLWithIAMIntegrationTests: XCTestCase {
     func isSignedIn() async -> Bool {
         let checkIsSignedInCompleted = expectation(description: "retrieve auth session completed")
         var resultOptional: Bool?
-        _ = Amplify.Auth.fetchAuthSession { event in
-            switch event {
-            case .success(let authSession):
-                resultOptional = authSession.isSignedIn
-                checkIsSignedInCompleted.fulfill()
-            case .failure(let error):
-                fatalError("Failed to get auth session \(error)")
-            }
+        do {
+            let authSession = try await Amplify.Auth.fetchAuthSession()
+            resultOptional = authSession.isSignedIn
+            checkIsSignedInCompleted.fulfill()
+        } catch {
+            fatalError("Failed to get auth session \(error)")
         }
+        
         await waitForExpectations(timeout: 100)
         guard let result = resultOptional else {
             fatalError("Could not get isSignedIn for user")
@@ -279,53 +257,42 @@ class GraphQLWithIAMIntegrationTests: XCTestCase {
     
     func signUp() async {
         let signUpSuccess = expectation(description: "sign up success")
-        _ = Amplify.Auth.signUp(username: username, password: password) { result in
-            switch result {
-            case .success(let signUpResult):
-                if signUpResult.isSignUpComplete {
-                    signUpSuccess.fulfill()
-                } else {
-                    XCTFail("Sign up successful but not complete")
-                }
-            case .failure(let error):
-                XCTFail("Failed to sign up \(error)")
+        do {
+            let signUpResult = try await Amplify.Auth.signUp(username: username, password: password)
+            if signUpResult.isSignUpComplete {
+                signUpSuccess.fulfill()
+            } else {
+                XCTFail("Sign up successful but not complete")
             }
+        } catch {
+            XCTFail("Failed to sign up \(error)")
         }
+
         await waitForExpectations(timeout: 100)
     }
 
     
     func signIn() async {
         let signInSuccess = expectation(description: "sign in success")
-        _ = Amplify.Auth.signIn(username: username,
-                                password: password) { result in
-            switch result {
-            case .success(let signInResult):
-                if signInResult.isSignedIn {
-                    signInSuccess.fulfill()
-                } else {
-                    XCTFail("Sign in successful but not complete")
-                }
-                
-            case .failure(let error):
-                XCTFail("Failed to sign in \(error)")
+        do {
+            let signInResult = try await Amplify.Auth.signIn(username: username,
+                                    password: password)
+            if signInResult.isSignedIn {
+                signInSuccess.fulfill()
+            } else {
+                XCTFail("Sign in successful but not complete")
             }
+        } catch {
+            XCTFail("Failed to sign in \(error)")
         }
+        
         await waitForExpectations(timeout: 100)
     }
     
     func signOut() async {
         let signOutCompleted = expectation(description: "sign out completed")
-        _ = Amplify.Auth.signOut { event in
-            switch event {
-            case .success:
-                signOutCompleted.fulfill()
-            case .failure(let error):
-                print("Could not sign out user \(error)")
-                signOutCompleted.fulfill()
-            }
-        }
-        
+        let _ = await Amplify.Auth.signOut()
+        signOutCompleted.fulfill()
         await waitForExpectations(timeout: 100)
     }
 
