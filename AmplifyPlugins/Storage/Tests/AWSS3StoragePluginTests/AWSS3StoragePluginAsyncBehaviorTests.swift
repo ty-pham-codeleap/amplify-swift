@@ -47,8 +47,8 @@ class AWSS3StoragePluginAsyncBehaviorTests: AWSS3StoragePluginTests {
         storageService.storageServiceDownloadEvents = [.completed(input)]
 
         Task {
-            let task = try await storagePlugin.downloadData(key: testKey,
-                                                            options: nil)
+            let task = storagePlugin.downloadData(key: testKey,
+                                                  options: nil)
             let output = try await task.value
             XCTAssertEqual(input, output)
             await done.fulfill()
@@ -64,9 +64,9 @@ class AWSS3StoragePluginAsyncBehaviorTests: AWSS3StoragePluginTests {
         storageService.storageServiceDownloadEvents = [.completed(nil)]
         
         Task {
-            let task = try await storagePlugin.downloadFile(key: testKey,
-                                                            local: testURL,
-                                                            options: nil)
+            let task = storagePlugin.downloadFile(key: testKey,
+                                                  local: testURL,
+                                                  options: nil)
             do {
                 _ = try await task.value
             } catch {
@@ -86,9 +86,9 @@ class AWSS3StoragePluginAsyncBehaviorTests: AWSS3StoragePluginTests {
         let input = testKey
 
         Task {
-            let task = try await storagePlugin.uploadData(key: input,
-                                                          data: testData,
-                                                          options: nil)
+            let task = storagePlugin.uploadData(key: input,
+                                                data: testData,
+                                                options: nil)
             do {
                 let output = try await task.value
                 XCTAssertEqual(input, output)
@@ -114,9 +114,9 @@ class AWSS3StoragePluginAsyncBehaviorTests: AWSS3StoragePluginTests {
         }
 
         Task {
-            let task = try await storagePlugin.uploadFile(key: input,
-                                                          local: fileURL,
-                                                          options: nil)
+            let task = storagePlugin.uploadFile(key: input,
+                                                local: fileURL,
+                                                options: nil)
             do {
                 let output = try await task.value
                 XCTAssertEqual(input, output)
