@@ -80,7 +80,8 @@ struct ConfigurationHelper {
               case .array(let scopes) = configuration?.value(at: "Scopes"),
               case .string(let appClientId) = configuration?.value(at: "AppClientId"),
               case .string(let signInRedirectURI) = configuration?.value(at: "SignInRedirectURI"),
-              case .string(let signOutRedirectURI) = configuration?.value(at: "SignOutRedirectURI")
+              case .string(let signOutRedirectURI) = configuration?.value(at: "SignOutRedirectURI"),
+              case .string(let appClientSecret) = configuration?.value(at: "AppClientSecret")
         else {
             return nil
         }
@@ -94,7 +95,7 @@ struct ConfigurationHelper {
                                            scopes: scopesArray,
                                            signInRedirectURI: signInRedirectURI,
                                            signOutRedirectURI: signOutRedirectURI)
-        return HostedUIConfigurationData(clientId: appClientId, oauth: oauth, clientSecret: nil)
+        return HostedUIConfigurationData(clientId: appClientId, oauth: oauth, clientSecret: appClientSecret)
     }
 
     static func parseIdentityPoolData(_ config: JSONValue) -> IdentityPoolConfigurationData? {
