@@ -116,6 +116,15 @@ struct HostedUIRequestHelper {
         var urlRequest = URLRequest(url: url)
         urlRequest.httpMethod = "POST"
         urlRequest.httpBody = body.data(using: .utf8)
+
+
+        let username = configuration.clientId
+        let password = configuration.clientSecret ?? ""
+        let loginString = String(format: "%@:%@", username, password)
+        let loginData = loginString.data(using: String.Encoding.utf8)!
+        let base64LoginString = loginData.base64EncodedString()
+        urlRequest.setValue("Basic \(base64LoginString)", forHTTPHeaderField: "Authorization")
+        
         return urlRequest
     }
 
