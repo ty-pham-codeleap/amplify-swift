@@ -135,7 +135,7 @@ public struct KeychainStore: KeychainStoreBehavior {
         try _set(data, key: key)
     }
 
-    @_spi(KeychainStore)
+    ///@_spi(KeychainStore)
     /// Set a key-value pair in the Keychain.
     /// This iSystem Programming Interface (SPI) may have breaking changes in future updates.
     /// - Parameters:
