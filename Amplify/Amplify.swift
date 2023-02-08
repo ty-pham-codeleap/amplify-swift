@@ -19,6 +19,7 @@ import Foundation
 /// There are two exceptions to this. The `Logging` and `Hub` categories are configured with a default plugin that is
 /// available at initialization.
 public class Amplify {
+    public static var authConfiguration: AuthCategoryConfiguration?
 
     /// If `true`, `configure()` has already been invoked, and subsequent calls to `configure` will throw a
     /// ConfigurationError.amplifyAlreadyConfigured error.

@@ -110,6 +110,7 @@ extension Amplify {
         let resolvedConfiguration: AmplifyConfiguration
         do {
             resolvedConfiguration = try Amplify.resolve(configuration: configuration)
+            authConfiguration = resolvedConfiguration.auth
         } catch {
             log.info("Failed to find Amplify configuration.")
             if isRunningForSwiftUIPreviews {
