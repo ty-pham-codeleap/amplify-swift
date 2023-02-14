@@ -34,6 +34,15 @@ public final class AWSCognitoAuthPlugin: AWSCognitoAuthPluginBehavior {
         return "awsCognitoAuthPlugin"
     }
 
+    public var sessionKey: String? {
+        switch authConfiguration {
+        case .userPools(let data):
+            return "amplify.\(data.poolId).session"
+        default:
+            return nil
+        }
+    }
+
     /// Instantiates an instance of the AWSCognitoAuthPlugin.
     public init() {
     }
