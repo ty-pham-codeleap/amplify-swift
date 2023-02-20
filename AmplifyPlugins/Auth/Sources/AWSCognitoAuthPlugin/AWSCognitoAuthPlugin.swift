@@ -27,6 +27,8 @@ public final class AWSCognitoAuthPlugin: AWSCognitoAuthPluginBehavior {
 
     var analyticsHandler: UserPoolAnalyticsBehavior!
 
+    var keychainAccessGroup: String?
+
     var taskQueue: TaskQueue<Any>!
 
     /// The unique key of the plugin within the auth category.
@@ -44,6 +46,7 @@ public final class AWSCognitoAuthPlugin: AWSCognitoAuthPluginBehavior {
     }
 
     /// Instantiates an instance of the AWSCognitoAuthPlugin.
-    public init() {
+    public init(keychainAccessGroup: String? = nil) {
+        self.keychainAccessGroup = keychainAccessGroup
     }
 }
